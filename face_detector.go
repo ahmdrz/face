@@ -1,4 +1,4 @@
-package smileyface
+package face
 
 // #cgo pkg-config: dlib-1
 // #cgo CXXFLAGS: -std=c++1z -Wall -O3 -DNDEBUG -march=native
@@ -8,9 +8,11 @@ package smileyface
 // #include "face_detector.h"
 import "C"
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"image"
+	"image/jpeg"
 	"unsafe"
 )
 
@@ -81,12 +83,25 @@ func (d *Detector) detect(imgData []byte) (faces []image.Rectangle, err error) {
 	return
 }
 
-// Detect returns all faces found on the provided image, sorted from
-// left to right. Empty list is returned if there are no faces, error is
+// Detect returns all faces found on the provided image.
+// Empty list is returned if there are no faces, error is
 // returned if there was some error while decoding/processing image.
-// Only JPEG format is currently supported. Thread-safe.
-func (d *Detector) Detect(imgData []byte) (faces []image.Rectangle, err error) {
-	return d.detect(imgData)
+// Only JPEG format is currently supported. Others will convert
+// to JPEG format. Thread-safe.
+func (d *Detector) Detect(img image.Image) (faces []image.Rectangle, err error) {
+	faces = []image.Rectangle{}
+	buf := new(bytes.Buffer)
+	err = jpeg.Encode(buf, img, nil)
+	if err != nil {
+		return
+	}
+	return d.DetectBytes(buf.Bytes())
+}
+
+// DetectBytes returns all faces found on the provided image. Input is byte-array.
+// Pass image.Image object to Detect.
+func (d *Detector) DetectBytes(img []byte) (faces []image.Rectangle, err error) {
+	return d.detect(img)
 }
 
 // Close frees resources taken by the Detector. Safe to call multiple

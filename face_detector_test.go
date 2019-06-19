@@ -1,4 +1,4 @@
-package smileyface
+package face
 
 import (
 	"io/ioutil"
@@ -16,7 +16,7 @@ func TestFaceDetector(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	faces, err := d.Detect(bytes)
+	faces, err := d.DetectBytes(bytes)
 	if err != nil {
 		t.Fatal(err)
 		return
